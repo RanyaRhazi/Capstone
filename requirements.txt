@@ -1,11 +1,5 @@
 Flask
-<<<<<<< HEAD
-tensorflow
-numpy
-Pillow
-=======
 numpy
 scikit-learn
 joblib
-Pillow  
->>>>>>> 16eda21 (Initial commit)
+
