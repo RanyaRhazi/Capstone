@@ -1,0 +1,6 @@
+.git
+.DS_Store
+__pycache__/
+*.pkl
+*.pdf
+.ipynb_checkpoints/
