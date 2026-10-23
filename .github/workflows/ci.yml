@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Train model
+        run: python train.py
+      - name: Run tests
+        run: python -m unittest -v
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t knn-digits .
+      - name: Start container
+        run: docker run -d -p 5767:5767 --name api knn-digits
+      - name: Call the API
+        run: |
+          for i in $(seq 1 30); do curl -sf http://localhost:5767/health && break; sleep 1; done
+          response=$(curl -sf -X POST http://localhost:5767/predict \
+            -H "Content-Type: application/json" \
+            -d '{"image": [0,0,5,13,9,1,0,0,0,0,13,15,10,15,5,0,0,3,15,2,0,11,8,0,0,4,12,0,0,8,8,0,0,5,8,0,0,9,8,0,0,4,11,0,1,12,7,0,0,2,14,5,10,12,0,0,0,0,6,13,10,0,0,0]}')
+          echo "$response"
+          test "$response" = '{"prediction":[0]}'
+      - name: Container logs
+        if: always()
+        run: docker logs api
